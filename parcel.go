@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 )
@@ -112,13 +113,27 @@ func (s ParcelStore) SetStatus(number int, status string) error {
 func (s ParcelStore) SetAddress(number int, address string) error {
 	// реализуйте обновление адреса в таблице parcel
 	// менять адрес можно только если значение статуса registered
-
 	return nil
 }
 
 func (s ParcelStore) Delete(number int) error {
 	// реализуйте удаление строки из таблицы parcel
 	// удалять строку можно только если значение статуса registered
+	parcel, err := s.Get(number)
+	if err != nil {
+		return err
+	}
+	if parcel.Status != ParcelStatusRegistered {
+		return errors.New("only parcels with status 'registered' can be deleted")
+	}
+	query := `
+		DELETE FROM parcel
+		WHERE number = :number
+	`
+	_, err = s.db.Exec(query, sql.Named("number", number))
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
