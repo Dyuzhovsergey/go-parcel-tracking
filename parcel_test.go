@@ -105,14 +105,27 @@ func TestSetStatus(t *testing.T) {
 	require.NoError(t, err)
 	defer db.Close()
 
+	store := NewParcelStore(db)
+	parcel := getTestParcel() 	
+
 	// add
 	// добавьте новую посылку в БД, убедитесь в отсутствии ошибки и наличии идентификатора
+	id, err := store.Add(parcel)
+	require.NoError(t, err)
+	parcel.Number = id
 
 	// set status
 	// обновите статус, убедитесь в отсутствии ошибки
+	newStatus := ParcelStatusSent
+	err = store.SetStatus(id, newStatus)
+	require.NoError(t, err)
+	
 
 	// check
 	// получите добавленную посылку и убедитесь, что статус обновился
+	parcelUpdate, err := store.Get(id)
+	require	.NoError(t, err)
+	require.Equal(t, newStatus, parcelUpdate.Status)
 }
 
 // TestGetByClient проверяет получение посылок по идентификатору клиента
