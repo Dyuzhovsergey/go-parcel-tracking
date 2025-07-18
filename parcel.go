@@ -22,7 +22,7 @@ func (s ParcelStore) Add(p Parcel) (int, error) {
    		INSERT INTO parcel (client, status, address, created_at)
  	   	VALUES (:client, :status, :address, :created_at)
 	`
-	createdAt := time.Now().Format("2006-01-02 15:04:05")
+	createdAt := time.Now().Format(time.RFC3339)
 
 	res, err := s.db.Exec(query,
 		sql.Named("client", p.Client),
