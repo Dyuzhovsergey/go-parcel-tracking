@@ -113,6 +113,27 @@ func (s ParcelStore) SetStatus(number int, status string) error {
 func (s ParcelStore) SetAddress(number int, address string) error {
 	// реализуйте обновление адреса в таблице parcel
 	// менять адрес можно только если значение статуса registered
+	parcel, err := s.Get(number)
+	if err != nil {
+		return err
+	}
+
+	if parcel.Status != ParcelStatusRegistered {
+		return errors.New("only parcels with status 'registred' cam be update address")
+	}
+	query := `
+    	UPDATE parcel
+		SET address = :address
+		WHERE number = :number
+	`
+	_, err = s.db.Exec(query,
+		sql.Named("address", address),
+		sql.Named("number", number),
+	)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -134,6 +155,5 @@ func (s ParcelStore) Delete(number int) error {
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
