@@ -34,7 +34,7 @@ func TestAddGetDelete(t *testing.T) {
 	db, err := sql.Open("sqlite", "tracker.db")
 	require.NoError(t, err)
 	defer db.Close()
-	
+
 	store := NewParcelStore(db)
 	parcel := getTestParcel()
 	// add
@@ -45,7 +45,6 @@ func TestAddGetDelete(t *testing.T) {
 	require.NotZero(t, id)
 
 	parcel.Number = id
-
 
 	// get
 	// получите только что добавленную посылку, убедитесь в отсутствии ошибки
@@ -106,7 +105,7 @@ func TestSetStatus(t *testing.T) {
 	defer db.Close()
 
 	store := NewParcelStore(db)
-	parcel := getTestParcel() 	
+	parcel := getTestParcel()
 
 	// add
 	// добавьте новую посылку в БД, убедитесь в отсутствии ошибки и наличии идентификатора
@@ -119,13 +118,15 @@ func TestSetStatus(t *testing.T) {
 	newStatus := ParcelStatusSent
 	err = store.SetStatus(id, newStatus)
 	require.NoError(t, err)
-	
 
 	// check
 	// получите добавленную посылку и убедитесь, что статус обновился
 	parcelUpdate, err := store.Get(id)
-	require	.NoError(t, err)
+	require.NoError(t, err)
 	require.Equal(t, newStatus, parcelUpdate.Status)
+
+	err = store.Delete(id)
+	require.NoError(t, err)
 }
 
 // TestGetByClient проверяет получение посылок по идентификатору клиента
@@ -134,6 +135,8 @@ func TestGetByClient(t *testing.T) {
 	db, err := sql.Open("sqlite", "tracker.db")
 	require.NoError(t, err)
 	defer db.Close()
+
+	store := NewParcelStore(db)
 
 	parcels := []Parcel{
 		getTestParcel(),
@@ -150,7 +153,8 @@ func TestGetByClient(t *testing.T) {
 
 	// add
 	for i := 0; i < len(parcels); i++ {
-		id, err := 
+		id, err := store.Add(parcels[i])
+		require.NoError(t, err)
 
 		// обновляем идентификатор добавленной у посылки
 		parcels[i].Number = id
@@ -160,15 +164,26 @@ func TestGetByClient(t *testing.T) {
 	}
 
 	// get by client
-	storedParcels, err := // получите список посылок по идентификатору клиента, сохранённого в переменной client
+	storedParcels, err := store.GetByClient(client)
 	// убедитесь в отсутствии ошибки
 	// убедитесь, что количество полученных посылок совпадает с количеством добавленных
+	require.NoError(t, err)
+	require.Len(t, storedParcels, len(parcels))
 
 	// check
 	for _, parcel := range storedParcels {
 		// в parcelMap лежат добавленные посылки, ключ - идентификатор посылки, значение - сама посылка
 		// убедитесь, что все посылки из storedParcels есть в parcelMap
 		// убедитесь, что значения полей полученных посылок заполнены верно
-		
+		expected, exists := parcelMap[parcel.Number]
+		require.True(t, exists)
+		require.Equal(t, expected.Client, parcel.Client)
+		require.Equal(t, expected.Status, parcel.Status)
+		require.Equal(t, expected.Address, parcel.Address)
+	}
+
+	for _, p := range parcels {
+		_ = store.Delete(p.Number)
+
 	}
 }
