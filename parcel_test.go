@@ -73,15 +73,29 @@ func TestSetAddress(t *testing.T) {
 	require.NoError(t, err)
 	defer db.Close()
 
+	store := NewParcelStore(db)
+	parcel := getTestParcel()
+
 	// add
 	// добавьте новую посылку в БД, убедитесь в отсутствии ошибки и наличии идентификатора
+	id, err := store.Add(parcel)
+	require.NoError(t, err)
+	parcel.Number = id
 
 	// set address
 	// обновите адрес, убедитесь в отсутствии ошибки
 	newAddress := "new test address"
+	err = store.SetAddress(id, newAddress)
+	require.NoError(t, err)
 
 	// check
 	// получите добавленную посылку и убедитесь, что адрес обновился
+	parselUpdate, err := store.Get(id)
+	require.NoError(t, err)
+	require.Equal(t, newAddress, parselUpdate.Address)
+
+	err = store.Delete(id)
+	require.NoError(t, err)
 }
 
 // TestSetStatus проверяет обновление статуса
