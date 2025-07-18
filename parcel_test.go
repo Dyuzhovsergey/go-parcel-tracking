@@ -125,6 +125,9 @@ func TestSetStatus(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, newStatus, parcelUpdate.Status)
 
+	err = store.SetStatus(id, ParcelStatusRegistered)
+	require.NoError(t, err)
+
 	err = store.Delete(id)
 	require.NoError(t, err)
 }
