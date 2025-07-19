@@ -130,13 +130,22 @@ func (s ParcelStore) SetAddress(number int, address string) error {
 		WHERE number = :number
 		AND status = :status
 	`
-	_, err = s.db.Exec(query,
+	res, err := s.db.Exec(query,
 		sql.Named("address", address),
 		sql.Named("number", number),
-		sql.Named("status", parcel.Status),
+		sql.Named("status", ParcelStatusRegistered),
 	)
 	if err != nil {
 		return err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rows == 0 {
+		return errors.New("only parcels with status 'registered' can be updated")
 	}
 
 	return nil
