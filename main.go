@@ -103,6 +103,7 @@ func main() {
 	if err != nil {
 		log.Println(err)
 	}
+	defer db.Close()
 
 	store := NewParcelStore(db) // создайте объект ParcelStore функцией NewParcelStore
 	service := NewParcelService(store)
