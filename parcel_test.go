@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -52,9 +53,9 @@ func TestAddGetDelete(t *testing.T) {
 
 	parcelGet, err := store.Get(id)
 	require.NoError(t, err)
-	require.Equal(t, parcel.Client, parcelGet.Client)
-	require.Equal(t, parcel.Address, parcelGet.Address)
-	require.Equal(t, parcel.Status, parcelGet.Status)
+	assert.Equal(t, parcel.Client, parcelGet.Client)
+	assert.Equal(t, parcel.Address, parcelGet.Address)
+	assert.Equal(t, parcel.Status, parcelGet.Status)
 
 	// delete
 	// удалите добавленную посылку, убедитесь в отсутствии ошибки
@@ -91,7 +92,7 @@ func TestSetAddress(t *testing.T) {
 	// получите добавленную посылку и убедитесь, что адрес обновился
 	parselUpdate, err := store.Get(id)
 	require.NoError(t, err)
-	require.Equal(t, newAddress, parselUpdate.Address)
+	assert.Equal(t, newAddress, parselUpdate.Address)
 
 	err = store.Delete(id)
 	require.NoError(t, err)
@@ -123,7 +124,7 @@ func TestSetStatus(t *testing.T) {
 	// получите добавленную посылку и убедитесь, что статус обновился
 	parcelUpdate, err := store.Get(id)
 	require.NoError(t, err)
-	require.Equal(t, newStatus, parcelUpdate.Status)
+	assert.Equal(t, newStatus, parcelUpdate.Status)
 
 	err = store.SetStatus(id, ParcelStatusRegistered)
 	require.NoError(t, err)
@@ -171,7 +172,7 @@ func TestGetByClient(t *testing.T) {
 	// убедитесь в отсутствии ошибки
 	// убедитесь, что количество полученных посылок совпадает с количеством добавленных
 	require.NoError(t, err)
-	require.Len(t, storedParcels, len(parcels))
+	assert.Len(t, storedParcels, len(parcels))
 
 	// check
 	for _, parcel := range storedParcels {
@@ -179,10 +180,10 @@ func TestGetByClient(t *testing.T) {
 		// убедитесь, что все посылки из storedParcels есть в parcelMap
 		// убедитесь, что значения полей полученных посылок заполнены верно
 		expected, exists := parcelMap[parcel.Number]
-		require.True(t, exists)
-		require.Equal(t, expected.Client, parcel.Client)
-		require.Equal(t, expected.Status, parcel.Status)
-		require.Equal(t, expected.Address, parcel.Address)
+		assert.True(t, exists)
+		assert.Equal(t, expected.Client, parcel.Client)
+		assert.Equal(t, expected.Status, parcel.Status)
+		assert.Equal(t, expected.Address, parcel.Address)
 	}
 
 	for _, p := range parcels {
