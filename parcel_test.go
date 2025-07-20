@@ -181,9 +181,7 @@ func TestGetByClient(t *testing.T) {
 		// убедитесь, что значения полей полученных посылок заполнены верно
 		expected, exists := parcelMap[parcel.Number]
 		assert.True(t, exists)
-		assert.Equal(t, expected.Client, parcel.Client)
-		assert.Equal(t, expected.Status, parcel.Status)
-		assert.Equal(t, expected.Address, parcel.Address)
+		assert.Equal(t, expected, parcel)
 	}
 
 	for _, p := range parcels {
