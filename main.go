@@ -46,8 +46,15 @@ func (s ParcelService) Register(client int, address string) (Parcel, error) {
 
 	parcel.Number = id
 
+	var displayTime string
+	if t, err := time.Parse(time.RFC3339, parcel.CreatedAt); err == nil {
+		displayTime = t.Format("2006-01-02 15:04:05")
+	} else {
+		displayTime = parcel.CreatedAt // Уже в нужном формате
+	}
+
 	fmt.Printf("Новая посылка № %d на адрес %s от клиента с идентификатором %d зарегистрирована %s\n",
-		parcel.Number, parcel.Address, parcel.Client, parcel.CreatedAt)
+		parcel.Number, parcel.Address, parcel.Client, displayTime)
 
 	return parcel, nil
 }
@@ -60,11 +67,17 @@ func (s ParcelService) PrintClientParcels(client int) error {
 
 	fmt.Printf("Посылки клиента %d:\n", client)
 	for _, parcel := range parcels {
-		fmt.Printf("Посылка № %d на адрес %s от клиента с идентификатором %d зарегистрирована %s, статус %s\n",
-			parcel.Number, parcel.Address, parcel.Client, parcel.CreatedAt, parcel.Status)
-	}
-	fmt.Println()
+		// Пробуем распарсить оба формата
+		var displayTime string
+		if t, err := time.Parse(time.RFC3339, parcel.CreatedAt); err == nil {
+			displayTime = t.Format("2006-01-02 15:04:05")
+		} else {
+			displayTime = parcel.CreatedAt // Уже в нужном формате
+		}
 
+		fmt.Printf("Посылка № %d на адрес %s от клиента с идентификатором %d зарегистрирована %s, статус %s\n",
+			parcel.Number, parcel.Address, parcel.Client, displayTime, parcel.Status)
+	}
 	return nil
 }
 
