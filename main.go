@@ -2,7 +2,9 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	_ "modernc.org/sqlite"
@@ -45,8 +47,15 @@ func (s ParcelService) Register(client int, address string) (Parcel, error) {
 
 	parcel.Number = id
 
+	var displayTime string
+	if t, err := time.Parse(time.RFC3339, parcel.CreatedAt); err == nil {
+		displayTime = t.Format("2006-01-02 15:04:05")
+	} else {
+		displayTime = parcel.CreatedAt
+	}
+
 	fmt.Printf("Новая посылка № %d на адрес %s от клиента с идентификатором %d зарегистрирована %s\n",
-		parcel.Number, parcel.Address, parcel.Client, parcel.CreatedAt)
+		parcel.Number, parcel.Address, parcel.Client, displayTime)
 
 	return parcel, nil
 }
@@ -59,11 +68,17 @@ func (s ParcelService) PrintClientParcels(client int) error {
 
 	fmt.Printf("Посылки клиента %d:\n", client)
 	for _, parcel := range parcels {
-		fmt.Printf("Посылка № %d на адрес %s от клиента с идентификатором %d зарегистрирована %s, статус %s\n",
-			parcel.Number, parcel.Address, parcel.Client, parcel.CreatedAt, parcel.Status)
-	}
-	fmt.Println()
 
+		var displayTime string
+		if t, err := time.Parse(time.RFC3339, parcel.CreatedAt); err == nil {
+			displayTime = t.Format("2006-01-02 15:04:05")
+		} else {
+			displayTime = parcel.CreatedAt
+		}
+
+		fmt.Printf("Посылка № %d на адрес %s от клиента с идентификатором %d зарегистрирована %s, статус %s\n",
+			parcel.Number, parcel.Address, parcel.Client, displayTime, parcel.Status)
+	}
 	return nil
 }
 
@@ -93,13 +108,27 @@ func (s ParcelService) ChangeAddress(number int, address string) error {
 }
 
 func (s ParcelService) Delete(number int) error {
+	parcel, err := s.store.Get(number)
+	if err != nil {
+		return fmt.Errorf("get parcel: %s", err)
+	}
+
+	if parcel.Status != ParcelStatusRegistered {
+		return errors.New("cannot delete parcel with non-registered status")
+	}
 	return s.store.Delete(number)
 }
 
 func main() {
 	// настройте подключение к БД
+	db, err := sql.Open("sqlite", "tracker.db")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer db.Close()
 
-	store := // создайте объект ParcelStore функцией NewParcelStore
+	store := NewParcelStore(db) // создайте объект ParcelStore функцией NewParcelStore
 	service := NewParcelService(store)
 
 	// регистрация посылки
